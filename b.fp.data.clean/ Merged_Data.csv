@@ -1,4 +1,4 @@
-"year","mean_annual_precip","mean_annual_temp","mean.max.temp","species","Average_Abundance_Run_Size"
+"year","mean_annual_precip","mean_annual_temp","mean_max_temp","species","Average_Abundance_Run_Size"
 1950,143.75,8.525,13.6583333333333,"Lake sockeye",30595
 1951,117.4,9.35,14.9916666666667,"Lake sockeye",13143
 1952,70.6083333333333,9.60833333333333,15.1083333333333,"Lake sockeye",18910

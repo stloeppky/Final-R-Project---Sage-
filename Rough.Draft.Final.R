@@ -48,9 +48,12 @@ climate.data.cultus <- Climate.Data.Cultus %>%
 
 # renaming variables in climate dataset 
 names(climate.data.cultus)[1] <- "year"
-names(climate.data.cultus)[2] <- "total_monthly_precip"
-names(climate.data.cultus)[3] <- "mean_monthly_temp"
-names(climate.data.cultus)[4] <- "mean.max.temp"
+names(climate.data.cultus)[2] <- "mean_annual_precip"
+names(climate.data.cultus)[3] <- "mean_annual_temp"
+names(climate.data.cultus)[4] <- "mean_max_temp"
+
+# renaming variables in salmon dataset 
+names(AA.Cultus)[5] <- "Average_Abundance_Run_Size"
 
 # making a dataset with just the variables I want for the salmon data 
 abundance.data.cultus <- AA.Cultus %>% 
@@ -86,28 +89,128 @@ write.csv(merged.data, paste(p.fp.data.clean,  "Merged_Data.csv"), row.names = F
 # Making Graphs  ----------------------------------------------------------
 
 
-# plot of abundance over time 
+# plot of abundance over time
+pdf(file = "d.fp.figures/Abundace Through Time.pdf")
+
 plot(merged.data$year, merged.data$Average_Abundance_Run_Size,
-     type = "l",
      col ="red",
      xlab = "Year",
      ylab = "Average Abundance & Run Size",
-     main = "Cultus Abundance through time")
+     main = "Cultus Abundance through time",
+     abline(lm(merged.data$Average_Abundance_Run_Size ~ merged.data$year), col = "red"))
+dev.off()
 
 # Why isn't this function work? (write pdf)
-# write.pdf(merged.data, paste(p.fp.figures,  "Cultus_Abundace_Through_Time"), row.names = FALSE)
+# write_pdf(merged.data, paste(p.fp.figures,  "Cultus_Abundace_Through_Time"), row.names = FALSE)
+ 
+
 
 # making abundance it in ggplot 
-ggplot(data = AA.Cultus, aes(x = year, y = Average_Abundance_Run_Size)) +
-geom_point() +
-  geom_smooth(method = "lm", 
-              se = FALSE, 
-              colour = "red",
-              ylab('Average Abundance'))
-
-# 
+ggplot(data = merged.data, aes(x = year, y = average_abundace)) +
+  geom_point() + 
+  geom_smooth(method = "lm", se = FALSE, colour = "red", ylab('Average Abundance'))
+# why isnt this workin? 
 
 
 
+# plot of temp against precip 
 
+plot(merged.data$mean_annual_temp, merged.data$mean_annual_precip,
+     col ="blue",
+     xlab = "Average Annual temp (C)",)
+
+
+# plot of precip through time 
+plot(merged.data$year, merged.data$mean_annual_precip,
+     type = "l",
+     col ="blue",
+     xlab = "Year",
+     ylab = "Average precipitation (mm)",
+     main = "Precipitation Through Time",
+    abline(lm(merged.data$mean_annual_precip ~ merged.data$year)))
+
+
+# plot of abundance against precip 
+plot(merged.data$mean_annual_precip, merged.data$Average_Abundance_Run_Size,
+     abline(lm(merged.data$Average_Abundance_Run_Size ~ merged.data$mean_annual_precip)),
+     col ="blue",
+     xlab = "Average Annual Precip (mm)",
+     ylab = "Average Abundance")
+
+
+# plot of abundance against temperature  
+plot(merged.data$mean_annual_temp, merged.data$Average_Abundance_Run_Size,
+     abline(lm(merged.data$Average_Abundance_Run_Size ~ merged.data$mean_annual_temp)),
+     col ="blue",
+     xlab = "Average Annual temp (C)",
+     ylab = "Average Abundance")
+
+# creating a merged plot 
+
+# precip and abundance 
+ggplot(merged.data, aes(x = year)) + 
+geom_line(aes(y = log(mean_annual_precip), color = 'average precip')) + 
+  geom_line(aes(y = log(log(Average_Abundance_Run_Size)), color = 'average abundace'))
+
+#temp and precip 
+ggplot(merged.data, aes(x = year)) + 
+  geom_line(aes(y = log(mean_annual_precip), color = 'average precip')) + 
+  geom_line(aes(y = log(mean_annual_temp), color = 'average temp'))
+
+#temp and abundance 
+
+pdf(file = "d.fp.figures/Temp and Abundance.pdf")
+
+ggplot(merged.data, aes(x = year)) + 
+geom_line(aes(y = (mean_annual_temp), color = 'average temp')) + 
+  geom_line(aes(y = log(Average_Abundance_Run_Size), color = 'average abundance'))
+
+dev.off()
+
+
+
+# Statistical Analysis  ---------------------------------------------------
+
+# test a correlation between temp and abundance 
+
+#H0: No correlation between temp and abundance 
+#HA: Correlation between temp and abundance 
+
+cor.test(merged.data$mean_annual_temp, merged.data$Average_Abundance_Run_Size)
+
+# correlation test between temp and precip
+cor.test(merged.data$mean_annual_temp, merged.data$mean_annual_precip)
+
+# correlation test between precip and abundance
+cor.test(merged.data$mean_annual_temp, merged.data$Average_Abundance_Run_Size)
+
+
+
+
+
+
+# one way ANOVA for abundance and precip  
+one.way.anova <- aov(Average_Abundance_Run_Size ~ mean.annual.precip, data = merged.data)
+summary(one.way.anova)
+
+#                       Df   Sum Sq   Mean Sq F value Pr(>F)
+# mean_yearly_precip  1 1.24e+08 124045731   1.123  0.296
+# Residuals          39 4.31e+09 110505209               
+# 4 observations deleted due to missingness
+
+# there is not a statistically significant relationship between average yearly precipitation and abundance in
+# Cultus Lake Sockeye 
+
+
+# one way ANOVA with abundance and temp 
+one.way.anova <- aov(Average_Abundance_Run_Size ~ mean_annual_temp, data = merged.data)
+summary(one.way.anova)
+
+#                    Df    Sum Sq   Mean Sq F value Pr(>F)
+# mean_annual_temp  1 6.388e+06   6387537   0.056  0.814
+# Residuals        39 4.427e+09 113522086               
+# 4 observations deleted due to missingness
+
+# there is not a statistically significant relationship between average yearly temperature and abundance in
+# Cultus Lake Sockeye 
 
